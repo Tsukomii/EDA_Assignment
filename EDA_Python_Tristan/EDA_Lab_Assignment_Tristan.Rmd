@@ -1,0 +1,175 @@
+---
+title: "EDA_Lab_Assignment"
+author: "Tristan Lampley"
+date: "2023-12-11"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r echo = FALSE}
+rm(list=ls()) #Clean Environment
+```
+# Explore the Ames Housing Dataset with R
+
+The Ames Housing dataset has information on the home sales in Ames, Iowa between 2006 - 2010.
+
+## 1. Load the Data
+
+```{r}
+df <- read.csv("/Users/Kurox/Desktop/DS311/EDA_Assignment/EDA_Assignment/EDA_Python_Tristan/data/ames.csv")
+df <- df[, -1] # Remove index column
+```
+
+The following code checks the dimensions of the data.
+
+```{r}
+dim(df)
+```
+
+There are 1460 rows (homes) and 80 columns (variables) in the dataset. 
+
+Inspect the contents of the dataframe:
+
+```{r}
+df[1:40, 1:8] # First 40 observations and first 8 variables
+```
+
+```{r}
+str(df)
+```
+
+<br>
+
+## 2. Explore Data Distributions
+
+### Sale Price
+
+Histogram for SalePrice:
+
+```{r}
+hist(df$SalePrice, xlab = "Sale Price", col = ("#FF0000"),
+     ylab = "Number of Houses", main = "Distribution of Sale Prices",
+     breaks = seq(-7500, 802500, by = 15000), ylim = c(0, 200))
+
+```
+
+Summary statistics: 
+
+```{r}
+y = df$SalePrice
+
+text <- function(y) {
+  noquote(c(paste("Median:", median(y)), paste("Mean:", mean(y)),
+                 paste("Standard Deviation:", sd(y))))
+}
+
+summary(y); cat(text(y), sep="\n")
+```
+Sales price median is 163000 while the mean is 180 almost 181000 the higher homes are what is bringing the mean so high 
+
+##Histogram for Total rooms above grade:
+
+```{r}
+hist(df$TotRmsAbvGrd, xlab = "Total Rooms (Excluding Bathrooms)", 
+     ylab = "Number of Houses", breaks = seq(1.25, 14.25, by = 0.5), 
+     main = "Distribution of Total Rooms Above Grade", 
+     col = ("#FF0000"), border=par('bg'))
+```
+
+Summary statistics: 
+
+```{r}
+y = df$TotRmsAbvGrd
+summary(y); cat(text(y), sep="\n")
+```
+The median of these groups of houses are at 6 and other houses go over that and can even double that
+
+
+
+##Histogram for Overall Condition: 
+
+```{r}
+hist(df$OverallCond, xlab = "Condition of House", 
+     ylab = "Number of Houses", breaks = seq(0.75, 9.25, by = 0.5), 
+     main = "Distribution of House Condition on a 1-10 Scale", 
+     xlim = range(1,10),
+     col = ("#FF0000"), border=par('bg'))
+```
+
+Summary statistics: 
+
+```{r}
+y = df$OverallCond
+summary(y); cat(text(y), sep="\n")
+```
+
+Most homes have a condition are at a 5 looking at this from houses being in the 5 category meaning that houses are in the middle in terms of quality and condition
+
+<br>
+
+## 3. Explore Differences between Subsets
+
+One useful way to explore a categorical variable is to create subsets of the full data set based on that categorical variable, then plot their distributions based on some other variable. Since this data set is traditionally used for predicting the sale price of a house, let's use Sale Price as that other variable.
+
+Create three variables, each of which represents a record-wise subset of df (meaning, it has the same columns as df, but only some of the rows).
+
++ below_average_condition: home sales where the overall condition was less than 5
+
+
++ average_condition: home sales where the overall condition was exactly 5
+
+
++ above_average_condition: home sales where the overall condition was greater than 5
+
+```{r}
+below_average_condition = df[df$OverallCond < 5, ]
+average_condition = df[df$OverallCond == 5, ]
+above_average_condition = df[df$OverallCond > 5, ]
+```
+
+The following code will produce a plot of the distributions of sale price for each of these subsets:
+
+```{r}
+a = below_average_condition$SalePrice
+b = average_condition$SalePrice
+c = above_average_condition$SalePrice
+
+# Create colors with reduced opacity (alpha) to see overlap
+c1 = rgb(255,255,127, max = 255, alpha = 120) # Yellow
+c2 = rgb(216,216,216, max = 255, alpha = 70)  # Grey
+c3 = rgb(127,255,255, max = 255, alpha = 128) # Cyan
+
+# Create custom bins so all are on the same scale
+breaks_by = as.integer(median(df$SalePrice) / 20)
+breaks_seq = seq(min(df$SalePrice), max(df$SalePrice) + breaks_by,
+                 by = breaks_by)
+
+hgA = hist(a, breaks = breaks_seq, plot = FALSE)
+hgB = hist(b, breaks = breaks_seq, plot = FALSE)
+hgC = hist(c, breaks = breaks_seq, plot = FALSE)
+
+# Plot three histograms
+plot(hgB, col = c2, ylim = c(0, 70), 
+     xlab = "Sale Price", ylab = "Number of Houses",
+     main = "Distribution of Sale Price Grouped by Condition")
+plot(hgC, col = c3, add = TRUE)
+plot(hgA, col = c1, add = TRUE)
+legend("topright", 
+       legend = c("above average condition", 
+                  "average condition",
+                  "below average condition"),
+       col = c(c3, c2, c1), cex = 1, 
+       pch = 20, pt.cex = 1.5)
+```
+
+Summary statistics:
+Looking at the graph shown above most houses are in average condition, some have above average, and there are minimal with less than average condition, averages are filling up the sale price across the graph.
+
+
+```
