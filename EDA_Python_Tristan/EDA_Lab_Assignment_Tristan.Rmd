@@ -171,5 +171,73 @@ legend("topright",
 Summary statistics:
 Looking at the graph shown above most houses are in average condition, some have above average, and there are minimal with less than average condition, averages are filling up the sale price across the graph.
 
+## 4. Explore Correlations
+
+To understand more about what features of these homes lead to higher sale prices, let's look at some correlations. We'll return to using the full df, rather than the subsets.
+
+In the cell below, print out both the name of the column and the Pearson correlation for the column that is most positively correlated with Sale Price (other than Sale Price, which is perfectly correlated with itself).
+
+We'll only check the correlations with some kind of numeric data type.
+
+```{r}
+# Create a df that contains only numeric columns
+# and doesn't include Sale Price
+numeric_df = df[, unlist(lapply(df, is.numeric))]
+numeric_df = numeric_df[, !names(numeric_df) %in% "SalePrice"]
+
+# Create list of correlations
+correlations = cor(numeric_df, df$SalePrice)
+
+# Find the largest value, and the column name at that index
+max_corr_value = max(correlations, na.rm = TRUE)
+i = which(correlations == max_corr_value) 
+max_corr_column = rownames(correlations)[[i]]
+
+noquote(c(paste("Most Positively Correlated Column:", 
+                max_corr_column), 
+          paste("Most Positively Correlated Value:",
+                max_corr_value)))
+```
+
+Now, find the most negatively correlated column:
+
+```{r}
+min_corr_value = min(correlations, na.rm = TRUE)
+j = which(correlations == min_corr_value) 
+min_corr_column = rownames(correlations)[[j]]
+
+noquote(c(paste("Most Negatively Correlated Column:", 
+                min_corr_column), 
+          paste("Most Negative Correlated Value:",
+                min_corr_value)))
+```
+
+Boxplots of the relevant columns:
+
+```{r}
+library(RColorBrewer)
+colors = brewer.pal(n = length(unique(df[, max_corr_column])), 
+                    name = "Set2") 
+colors2 = brewer.pal(n = length(unique(df[, min_corr_column])), 
+                    name = "Set3") 
+
+boxplot(df$SalePrice ~ df[, max_corr_column], 
+        xlab = "OverallQuality", ylab = "Sale Price",
+        main = "Overall Quality vs. Sale Price",
+        col = colors)
+boxplot(df$SalePrice ~ df[, min_corr_column], 
+        xlab = "Number of Kitchens Above Ground", 
+        ylab = "Sale Price", col = colors2,
+        main = "Number of Kitchens vs. Sale Price")
+```
+
+The column with the highest correlation is overall quality.
+According to the data description:
+
+Overall Quality: Rates the overall material and finish of the house
+
+1	Very Poor, 2 poor, 3 fair, 4 below average, 5 average, 6 above average, 7 good, 8 very good, 9 excellent, 10 very excellent
+       
+From this we can see that kitchens have lower price, double price for homes with one kitchen, wondering why that is, it is interesting to see that homes with more kitchens cost less might be because of the quality difference 
 
 ```
